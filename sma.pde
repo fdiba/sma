@@ -79,14 +79,17 @@ void controllerChange(ControlChange change) {
   println("Value:"+change.value());
 
 
-  if (change.channel()==0 && change.number()==32) {
+  if (change.channel()==0 && change.number()==0) {
     a.multi = (int) map(change.value(), 0, 127, 0, width);
-  } else if (change.channel()==1 && change.number()==32 && change.value()==0) {
+  } else if (change.channel()==1 && change.number()==0 && change.value()==0) {
     a.multi = 0;
-  } else if (change.channel()==0 && change.number()==33) {
+  } else if (change.channel()==0 && change.number()==1) {
     a.step = map(change.value(), 0, 127, 0.01, .1);
-  } else if (change.channel()==1 && change.number()==33 && change.value()==0) {
+  } else if (change.channel()==1 && change.number()==1 && change.value()==0) {
     a.step = .1;
-  } 
+  } else if (change.channel()==0 && change.number()==4) {
+    //box2d.setGravity(100, 0);
+    a.G = map(change.value(), 0, 127, 0, 200);
+  }
 }
 
