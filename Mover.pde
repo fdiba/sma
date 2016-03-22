@@ -6,9 +6,12 @@ class Mover {
   boolean isDead;
   
   Vec2 pos;
+    
+  int a_id;
 
-  Mover(float r_, float x, float y) {
+  Mover(float r_, float x, float y, int _a_id) {
 
+    a_id = _a_id;
     r = r_;
     // Define a body
     BodyDef bd = new BodyDef();
@@ -59,7 +62,7 @@ class Mover {
     translate(pos.x, pos.y);
     rotate(a);
     if(isDead)fill(255, 0, 0);
-    else fill(150);
+    else fill(200/(a_id+1));
     stroke(255);
     strokeWeight(3);
     ellipse(0, 0, r*2, r*2);

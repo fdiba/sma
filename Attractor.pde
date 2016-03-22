@@ -15,17 +15,21 @@ class Attractor {
   float G;
   
   boolean hasBeenUpdated;
-
+  
+  float alpha;
+  
   Attractor(float r_, float x, float y) {
 
     location = new PVector(x, y);
-    pNoise = 0;
+    pNoise = (int) random(10000);
 
     G = 0; // Strength of force
 
     multi = 0;
     step =.1;
-
+    
+    alpha = 255;
+    
     r = r_;
 
     // Define a body
@@ -103,8 +107,8 @@ class Attractor {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(a);
-    fill(0);
-    stroke(0);
+    fill(0, alpha);
+    stroke(0, alpha);
     strokeWeight(3);
     ellipse(0, 0, r*2+addon, r*2+addon);
     //ellipse(0, 0, r*4, r*4);

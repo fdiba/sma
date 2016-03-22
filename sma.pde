@@ -51,19 +51,29 @@ void draw() {
   background(255);
 
   if (frameCount%24==0 && movers.size()<numMoversMax) {    
-    movers.add(new Mover(random(8, 16), random(width), random(height)));
+    movers.add(new Mover(random(8, 16), random(width), random(height), (int) random(attractors.size())));
   }
 
   if (attractors.size()<numOfAttractorMax && attractors.size() != numOfAttractor) {
     if(numOfAttractor==1)attractors.add(new Attractor(32, width/2-150, height/2-90)); //32
     if(numOfAttractor==2)attractors.add(new Attractor(32, width/2+150, height/2-90)); //32
     if (numOfAttractor==3)attractors.add(new Attractor(32, width/2, height/2+150)); //32
+    
+    for (int i = 0; i < movers.size (); i++) {
+      movers.get(i).a_id = (int) random(attractors.size());
+    }
+    
   }
   
   //TODO sync midi interface !!
   while (numOfAttractor<attractors.size()){
     box2d.destroyBody( attractors.get(attractors.size()-1).body);
     attractors.remove(attractors.size()-1);
+    
+    for (int i = 0; i < movers.size (); i++) {
+      movers.get(i).a_id = (int) random(attractors.size());
+    }
+    
   }
 
   box2d.step();
@@ -77,7 +87,7 @@ void draw() {
 
     Vec2 force;
     if(attractors.size()>0) {
-      force = attractors.get(0).attract(movers.get(i));
+      force = attractors.get(movers.get(i).a_id).attract(movers.get(i));
       movers.get(i).applyForce(force);
     }
     
@@ -148,6 +158,12 @@ void controllerChange(ControlChange change) {
     
     for (int i = 0; i < attractors.size (); i++) {
       attractors.get(i).step = .1;
+    }
+    
+  } else if (change.channel()==0 && change.number()==3) {
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).alpha = map(change.value(), 0, 127, 0, 255);
     }
     
   } else if (change.channel()==0 && change.number()==4) {
