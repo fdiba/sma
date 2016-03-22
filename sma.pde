@@ -10,15 +10,21 @@ MidiBus myBus;
 Box2DProcessing box2d;
 
 ArrayList<Mover> movers;
+ArrayList<Attractor> attractors;
 
 Attractor a;
 
 int numMoversMax;
 
+int numOfAttractor;
+int numOfAttractorMax = 3;
+
 void setup() {
 
-  size(640, 360);
+  size(800, 600);
   smooth();
+
+  numOfAttractor = 1;
 
   MidiBus.list();
   myBus = new MidiBus(this, "Midi Fighter Twister", "Midi Fighter Twister"); 
@@ -31,7 +37,8 @@ void setup() {
   numMoversMax = 25;
   movers = new ArrayList<Mover>();
 
-  a = new Attractor(32, width/2, height/2);
+  attractors = new ArrayList<Attractor>();
+  attractors.add(new Attractor(32, width/2-150, height/2-90)); //32
 }
 void mousePressed() {
 
@@ -47,16 +54,43 @@ void draw() {
     movers.add(new Mover(random(8, 16), random(width), random(height)));
   }
 
+  if (attractors.size()<numOfAttractorMax && attractors.size() != numOfAttractor) {
+    if(numOfAttractor==1)attractors.add(new Attractor(32, width/2-150, height/2-90)); //32
+    if(numOfAttractor==2)attractors.add(new Attractor(32, width/2+150, height/2-90)); //32
+    if (numOfAttractor==3)attractors.add(new Attractor(32, width/2, height/2+150)); //32
+  }
+  
+  //TODO sync midi interface !!
+  while (numOfAttractor<attractors.size()){
+    box2d.destroyBody( attractors.get(attractors.size()-1).body);
+    attractors.remove(attractors.size()-1);
+  }
+
   box2d.step();
 
-  a.update();
-
-  a.display();
+  for (int i = 0; i < attractors.size (); i++) {
+    attractors.get(i).update();
+    attractors.get(i).display();
+  }
 
   for (int i = 0; i < movers.size (); i++) {
-    Vec2 force = a.attract(movers.get(i));
-    movers.get(i).applyForce(force);
+
+    Vec2 force;
+    if(attractors.size()>0) {
+      force = attractors.get(0).attract(movers.get(i));
+      movers.get(i).applyForce(force);
+    }
+    
+    movers.get(i).checkPosition();
     movers.get(i).display();
+  }
+
+  for (int i = movers.size ()-1; i >= 0; i--) {
+
+    if (movers.get(i).isDead) {
+      box2d.destroyBody(movers.get(i).body);
+      movers.remove(i);
+    }
   }
 }
 void saveIMG() {
@@ -80,16 +114,55 @@ void controllerChange(ControlChange change) {
 
 
   if (change.channel()==0 && change.number()==0) {
-    a.multi = (int) map(change.value(), 0, 127, 0, width);
-  } else if (change.channel()==1 && change.number()==0 && change.value()==0) {
-    a.multi = 0;
-  } else if (change.channel()==0 && change.number()==1) {
-    a.step = map(change.value(), 0, 127, 0.01, .1);
+    
+    float r = map(change.value(), 0, 127, 0, 64);
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).r = r;
+      attractors.get(i).hasBeenUpdated = true;
+    }
+  
+} else if (change.channel()==0 && change.number()==1) {
+
+    int multi = (int) map(change.value(), 0, 127, 0, width);        
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).multi = multi;
+    }
+    
   } else if (change.channel()==1 && change.number()==1 && change.value()==0) {
-    a.step = .1;
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).multi = 0;
+    }
+    
+  } else if (change.channel()==0 && change.number()==2) {
+    
+    float step = map(change.value(), 0, 127, 0.01, .1);
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).step = step;
+    }
+    
+  } else if (change.channel()==1 && change.number()==2 && change.value()==0) {
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).step = .1;
+    }
+    
   } else if (change.channel()==0 && change.number()==4) {
-    //box2d.setGravity(100, 0);
-    a.G = map(change.value(), 0, 127, 0, 200);
+    
+    float G = map(change.value(), 0, 127, 0, 200);
+    
+    for (int i = 0; i < attractors.size (); i++) {
+      attractors.get(i).G = G;
+    }
+    
+  } else if (change.channel()==0 && change.number()==12) {
+    
+    
+    numOfAttractor = (int) map(change.value(), 0, 127, 0, 3);
+    //println(numOfAttractor);
   }
 }
 

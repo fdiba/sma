@@ -13,6 +13,8 @@ class Attractor {
   float step;
 
   float G;
+  
+  boolean hasBeenUpdated;
 
   Attractor(float r_, float x, float y) {
 
@@ -29,6 +31,7 @@ class Attractor {
     // Define a body
     BodyDef bd = new BodyDef();
     bd.type = BodyType.STATIC;
+    //bd.type = BodyType.DYNAMIC;
 
     // Set its position
     bd.position = box2d.coordPixelsToWorld(x, y);
@@ -42,7 +45,7 @@ class Attractor {
   }
   void update() {
 
-    if (multi>0) {
+    if (multi>0 || hasBeenUpdated) {
 
       addon = noise(pNoise+=step);
       //println(addon);
@@ -53,6 +56,7 @@ class Attractor {
       // Define a body
       BodyDef bd = new BodyDef();
       bd.type = BodyType.STATIC;
+      
       // Set its position
       bd.position = box2d.coordPixelsToWorld(location.x, location.y);
       body = box2d.world.createBody(bd);
@@ -61,7 +65,9 @@ class Attractor {
       CircleShape cs = new CircleShape();
       cs.m_radius = box2d.scalarPixelsToWorld(r+addon/2);
 
-      a.body.createFixture(cs, 1);
+      body.createFixture(cs, 1);
+      
+      hasBeenUpdated = false;
     }
   }
 
@@ -99,11 +105,11 @@ class Attractor {
     rotate(a);
     fill(0);
     stroke(0);
-    strokeWeight(1);
+    strokeWeight(3);
     ellipse(0, 0, r*2+addon, r*2+addon);
     //ellipse(0, 0, r*4, r*4);
     //ellipse(0, 0, (r+addon)*2, (r+addon)*2);
     popMatrix();
-  }
+  } 
 }
 
