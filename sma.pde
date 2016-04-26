@@ -6,8 +6,6 @@ import org.jbox2d.collision.shapes.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 
-
-
 MidiBus myBus;
 Box2DProcessing box2d;
 
@@ -21,33 +19,20 @@ int numMoversMax;
 int numOfAttractor;
 int numOfAttractorMax = 3;
 
-Rectangle screen1;
-Rectangle screen2;
-int numberOfScreen;
-boolean fsMode;
-
-int dWidth;
-int dHeight;
+boolean hasBeenInit;
 
 void setup() {
-
-  println("setup");
-
-  if (fsMode) {
-    dWidth = screen2.width;
-    dHeight = screen2.height;
-  } else {
-    dWidth = 800;
-    dHeight = 600;
-  }
-
-  size(dWidth, dHeight);
+  
+  fullScreen(2);
+  //size(800, 600);
+ 
   smooth();
 
   numOfAttractor = 1;
 
   MidiBus.list();
-  myBus = new MidiBus(this, "Midi Fighter Twister", "Midi Fighter Twister"); 
+  myBus = new MidiBus(this, "Midi Fighter Twister", "Midi Fighter Twister");
+  resetFighterTwister();
 
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
@@ -58,51 +43,14 @@ void setup() {
   movers = new ArrayList<Mover>();
 
   attractors = new ArrayList<Attractor>();
-  attractors.add(new Attractor(32, width/2-150, height/2-90)); //32
+  attractors.add(new Attractor(0, width/2-150, height/2-90)); //32
 }
-void init() {
-
-  println("init");
-
-  super.init();
-
-  screen1 = new Rectangle();
-  screen2 = new Rectangle();
-
-  GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-  GraphicsDevice[] gs = ge.getScreenDevices();  
-
-  GraphicsDevice gd = gs[0];
-  GraphicsConfiguration[] gc = gd.getConfigurations();
-  screen1 = gc[0].getBounds();
-
-  numberOfScreen = gs.length;
-
-  if (numberOfScreen > 1) {
-    fsMode = true;
-  }  
-
-  if (fsMode) {
-    gd = gs[1];
-    gc = gd.getConfigurations();
-    screen2 = new Rectangle();
-    screen2 = gc[0].getBounds();
-
-    frame.removeNotify();
-    frame.setUndecorated(true);
-    frame.addNotify();
-  }
-} 
-void mousePressed() {
-
-  println("change");
-  //myBus.sendControllerChange(0, 32, 40);
-  //myBus.sendNoteOn(0, 32, 0); 
-  //myBus.sendNoteOff(0, 32, 0);
+void resetFighterTwister(){
+  int channel = 0;
+  int value = 0;
+  for (int i=0; i<16; i++) myBus.sendControllerChange(channel, i, value);
 }
 void draw() {
-
-  frame.setLocation(screen2.width, 0);
 
   background(255);
 
@@ -111,16 +59,15 @@ void draw() {
   }
 
   if (attractors.size()<numOfAttractorMax && attractors.size() != numOfAttractor) {
-    if (numOfAttractor==1)attractors.add(new Attractor(32, width/2-150, height/2-90)); //32
-    if (numOfAttractor==2)attractors.add(new Attractor(32, width/2+150, height/2-90)); //32
-    if (numOfAttractor==3)attractors.add(new Attractor(32, width/2, height/2+150)); //32
+    if (numOfAttractor==1)attractors.add(new Attractor(random(10)+22, width/2-150, height/2-90)); //32
+    if (numOfAttractor==2)attractors.add(new Attractor(random(10)+22, width/2+150, height/2-90)); //32
+    if (numOfAttractor==3)attractors.add(new Attractor(random(10)+22, width/2, height/2+150)); //32
 
     for (int i = 0; i < movers.size (); i++) {
       movers.get(i).a_id = (int) random(attractors.size());
     }
   }
 
-  //TODO sync midi interface !!
   while (numOfAttractor<attractors.size ()) {
     box2d.destroyBody( attractors.get(attractors.size()-1).body);
     attractors.remove(attractors.size()-1);
@@ -222,10 +169,6 @@ void controllerChange(ControlChange change) {
       attractors.get(i).G = G;
     }
   } else if (change.channel()==0 && change.number()==12) {
-
-
     numOfAttractor = (int) map(change.value(), 0, 127, 0, 3);
-    //println(numOfAttractor);
   }
 }
-
